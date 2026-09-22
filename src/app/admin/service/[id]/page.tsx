@@ -174,9 +174,28 @@ export default async function ServiceRequestPage({
               </p>
             </div>
 
-            <div className="rounded-full bg-gray-100 px-4 py-2 font-semibold">
-              {statusLabel(serviceRequest.status)}
-            </div>
+            <form
+              action={`/api/admin/service/${serviceRequest.id}/status`}
+              method="post"
+              className="flex flex-col gap-2 sm:flex-row"
+            >
+              <select
+                name="status"
+                defaultValue={serviceRequest.status}
+                className="rounded-lg border border-gray-300 bg-white px-4 py-2"
+              >
+                <option value="new">Neu</option>
+                <option value="in_progress">In Bearbeitung</option>
+                <option value="completed">Abgeschlossen</option>
+              </select>
+
+              <button
+                type="submit"
+                className="rounded-lg bg-black px-4 py-2 font-medium text-white hover:bg-gray-800"
+              >
+                Status speichern
+              </button>
+            </form>
           </div>
         </div>
 
@@ -376,6 +395,30 @@ export default async function ServiceRequestPage({
             <h2 className="text-xl font-bold">
               Interne Notizen
             </h2>
+
+            <form
+              action={`/api/admin/service/${serviceRequest.id}/notes`}
+              method="post"
+              className="mt-4"
+            >
+              <textarea
+                name="note"
+                required
+                maxLength={5000}
+                rows={4}
+                placeholder="Interne Notiz hinzufügen..."
+                className="w-full rounded-xl border border-gray-300 p-3"
+              />
+
+              <button
+                type="submit"
+                className="mt-3 rounded-lg bg-black px-4 py-2 font-medium text-white hover:bg-gray-800"
+              >
+                Notiz speichern
+              </button>
+            </form>
+
+            <div className="my-6 border-t" />
 
             {(notesResult.data ?? []).length === 0 ? (
               <p className="mt-4 text-gray-500">
