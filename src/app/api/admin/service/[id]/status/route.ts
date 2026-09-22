@@ -38,6 +38,29 @@ export async function POST(
     return new NextResponse('Ungültiger Status', { status: 400 })
   }
 
+  if (status === 'completed') {
+    const { data: serviceRequest, error: serviceError } =
+      await supabase
+        .from('service_requests')
+        .select('final_fault')
+        .eq('id', id)
+        .single()
+
+    if (serviceError || !serviceRequest) {
+      return new NextResponse(
+        'Servicefall wurde nicht gefunden',
+        { status: 404 }
+      )
+    }
+
+    if (!serviceRequest.final_fault?.trim()) {
+      return new NextResponse(
+        'Bitte zuerst den festgestellten Fehler ausfüllen und speichern, bevor der Servicefall abgeschlossen wird.',
+        { status: 400 }
+      )
+    }
+  }
+
   const { error } = await supabase
     .from('service_requests')
     .update({ status })

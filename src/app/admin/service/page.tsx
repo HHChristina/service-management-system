@@ -91,6 +91,7 @@ export default async function ServiceListPage({
       service_number,
       status,
       problem_description,
+      final_fault,
       contact_customer_name,
       contact_first_name,
       contact_last_name,
@@ -117,6 +118,7 @@ export default async function ServiceListPage({
     const searchFilters = [
       `service_number.ilike.%${searchTerm}%`,
       `problem_description.ilike.%${searchTerm}%`,
+      `final_fault.ilike.%${searchTerm}%`,
       `contact_customer_name.ilike.%${searchTerm}%`,
       `contact_first_name.ilike.%${searchTerm}%`,
       `contact_last_name.ilike.%${searchTerm}%`,

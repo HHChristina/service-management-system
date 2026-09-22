@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import ServiceStatusForm from '@/components/admin/service-status-form'
 import { notFound, redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
@@ -54,6 +55,7 @@ export default async function ServiceRequestPage({
       service_number,
       status,
       problem_description,
+      final_fault,
       created_at,
       updated_at,
       contact_customer_name,
@@ -177,28 +179,13 @@ export default async function ServiceRequestPage({
               </p>
             </div>
 
-            <form
-              action={`/api/admin/service/${serviceRequest.id}/status`}
-              method="post"
-              className="flex flex-col gap-2 sm:flex-row"
-            >
-              <select
-                name="status"
-                defaultValue={serviceRequest.status}
-                className="rounded-lg border border-gray-300 bg-white px-4 py-2"
-              >
-                <option value="new">Neu</option>
-                <option value="in_progress">In Bearbeitung</option>
-                <option value="completed">Abgeschlossen</option>
-              </select>
-
-              <button
-                type="submit"
-                className="rounded-lg bg-black px-4 py-2 font-medium text-white hover:bg-gray-800"
-              >
-                Status speichern
-              </button>
-            </form>
+            <ServiceStatusForm
+              serviceRequestId={serviceRequest.id}
+              currentStatus={serviceRequest.status}
+              hasFinalFault={Boolean(
+                serviceRequest.final_fault?.trim()
+              )}
+            />
           </div>
         </div>
 
@@ -360,6 +347,41 @@ export default async function ServiceRequestPage({
           <p className="mt-4 whitespace-pre-wrap text-gray-700">
             {serviceRequest.problem_description}
           </p>
+        </section>
+
+        <section className="mt-6 rounded-2xl bg-white p-6 shadow-sm">
+          <h2 className="text-xl font-bold">
+            Festgestellter Fehler
+          </h2>
+
+          <p className="mt-2 text-sm text-gray-500">
+            Internes Feld. Hier wird nach der Diagnose eingetragen,
+            was tatsächlich defekt war.
+          </p>
+
+          <form
+            action={`/api/admin/service/${serviceRequest.id}/final-fault`}
+            method="post"
+            className="mt-5"
+          >
+            <textarea
+              name="final_fault"
+              rows={4}
+              maxLength={5000}
+              defaultValue={
+                serviceRequest.final_fault ?? ''
+              }
+              placeholder="z. B. Netzteil defekt, Mainboard ausgefallen, Akku ohne Funktion ..."
+              className="w-full rounded-xl border border-gray-300 p-3"
+            />
+
+            <button
+              type="submit"
+              className="mt-3 rounded-lg bg-black px-5 py-3 font-medium text-white hover:bg-gray-800"
+            >
+              Festgestellten Fehler speichern
+            </button>
+          </form>
         </section>
 
         <section className="mt-6 rounded-2xl bg-white p-6 shadow-sm">

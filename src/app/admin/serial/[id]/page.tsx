@@ -74,6 +74,7 @@ export default async function SerialNumberPage({
         service_number,
         status,
         problem_description,
+        final_fault,
         created_at
       `)
       .eq('serial_number_id', id)
@@ -388,7 +389,10 @@ export default async function SerialNumberPage({
                       Status
                     </th>
                     <th className="px-3 py-3">
-                      Problem
+                      Gemeldetes Problem
+                    </th>
+                    <th className="px-3 py-3">
+                      Festgestellter Fehler
                     </th>
                     <th className="px-3 py-3">
                       Datum
@@ -417,6 +421,10 @@ export default async function SerialNumberPage({
 
                       <td className="max-w-lg px-3 py-4">
                         {service.problem_description}
+                      </td>
+
+                      <td className="max-w-lg px-3 py-4">
+                        {service.final_fault || '–'}
                       </td>
 
                       <td className="whitespace-nowrap px-3 py-4">
