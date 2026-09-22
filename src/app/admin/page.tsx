@@ -151,14 +151,17 @@ export default async function AdminPage() {
             </p>
           </Link>
 
-          <div className="rounded-2xl bg-white p-6 shadow-sm">
+          <Link
+            href="/admin/serial"
+            className="block rounded-2xl bg-white p-6 shadow-sm transition hover:shadow-md"
+          >
             <p className="text-sm text-gray-500">
               Seriennummern
             </p>
             <p className="mt-2 text-3xl font-bold">
               {serialNumbersResult.count ?? 0}
             </p>
-          </div>
+          </Link>
 
           <div className="rounded-2xl bg-white p-6 shadow-sm">
             <p className="text-sm text-gray-500">
