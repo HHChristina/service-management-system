@@ -49,6 +49,19 @@ export default async function ServiceListPage({
     redirect('/login')
   }
 
+  let matchingSerialNumberIds: string[] = []
+
+  if (q) {
+    const { data: serialMatches } = await supabase
+      .from('serial_numbers')
+      .select('id')
+      .ilike('serial_number', `%${q}%`)
+      .limit(100)
+
+    matchingSerialNumberIds =
+      serialMatches?.map((serial) => serial.id) ?? []
+  }
+
   let query = supabase
     .from('service_requests')
     .select(`
@@ -75,9 +88,22 @@ export default async function ServiceListPage({
     .order('created_at', { ascending: false })
 
   if (q) {
-    query = query.or(
-      `service_number.ilike.%${q}%,problem_description.ilike.%${q}%,contact_customer_name.ilike.%${q}%,contact_first_name.ilike.%${q}%,contact_last_name.ilike.%${q}%,contact_email.ilike.%${q}%`
-    )
+    const searchFilters = [
+      `service_number.ilike.%${q}%`,
+      `problem_description.ilike.%${q}%`,
+      `contact_customer_name.ilike.%${q}%`,
+      `contact_first_name.ilike.%${q}%`,
+      `contact_last_name.ilike.%${q}%`,
+      `contact_email.ilike.%${q}%`,
+    ]
+
+    if (matchingSerialNumberIds.length > 0) {
+      searchFilters.push(
+        `serial_number_id.in.(${matchingSerialNumberIds.join(',')})`
+      )
+    }
+
+    query = query.or(searchFilters.join(','))
   }
 
   if (status) {
