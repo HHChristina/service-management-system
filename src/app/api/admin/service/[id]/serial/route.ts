@@ -7,7 +7,6 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params
-
   const supabase = await createClient()
 
   const { data: claimsData } = await supabase.auth.getClaims()
@@ -31,54 +30,49 @@ export async function POST(
     return new NextResponse('Nicht berechtigt', { status: 403 })
   }
 
-  const admin = createAdminClient()
+  const formData = await request.formData()
 
-  const { data: serviceRequest, error: serviceError } = await admin
-    .from('service_requests')
-    .select(`
-      id,
-      customer_id,
-      product_group_id,
-      serial_number_id
-    `)
-    .eq('id', id)
-    .single()
+  const correctedSerialNumber = String(
+    formData.get('corrected_serial_number') ?? ''
+  ).trim()
 
-  if (serviceError || !serviceRequest) {
-    return new NextResponse('Servicefall wurde nicht gefunden', {
-      status: 404,
-    })
+  if (!correctedSerialNumber) {
+    return new NextResponse(
+      'Seriennummer darf nicht leer sein',
+      { status: 400 }
+    )
   }
 
-  const { data: oldSerial } = await admin
-    .from('serial_numbers')
-    .select('id, serial_number')
-    .eq('id', serviceRequest.serial_number_id)
-    .single()
-
-  const formData = await request.formData()
-  const mode = String(formData.get('mode') ?? '')
-
-  let targetSerial: {
-    id: string
-    serial_number: string
-  } | null = null
-
-  let newlyCreatedSerialId: string | null = null
-
-  if (mode === 'existing') {
-    const serialNumberId = String(
-      formData.get('serial_number_id') ?? ''
+  if (correctedSerialNumber.length > 150) {
+    return new NextResponse(
+      'Seriennummer ist zu lang',
+      { status: 400 }
     )
+  }
 
-    if (!serialNumberId) {
-      return new NextResponse(
-        'Bitte eine Seriennummer auswählen',
-        { status: 400 }
-      )
-    }
+  const admin = createAdminClient()
 
-    const { data: selectedSerial, error } = await admin
+  const { data: serviceRequest, error: serviceError } =
+    await admin
+      .from('service_requests')
+      .select(`
+        id,
+        customer_id,
+        product_group_id,
+        serial_number_id
+      `)
+      .eq('id', id)
+      .single()
+
+  if (serviceError || !serviceRequest) {
+    return new NextResponse(
+      'Servicefall wurde nicht gefunden',
+      { status: 404 }
+    )
+  }
+
+  const { data: currentSerial, error: currentSerialError } =
+    await admin
       .from('serial_numbers')
       .select(`
         id,
@@ -86,140 +80,188 @@ export async function POST(
         customer_id,
         product_group_id
       `)
-      .eq('id', serialNumberId)
+      .eq('id', serviceRequest.serial_number_id)
       .single()
 
-    if (error || !selectedSerial) {
-      return new NextResponse(
-        'Seriennummer wurde nicht gefunden',
-        { status: 404 }
-      )
-    }
-
-    if (
-      selectedSerial.customer_id !== serviceRequest.customer_id ||
-      selectedSerial.product_group_id !==
-        serviceRequest.product_group_id
-    ) {
-      return new NextResponse(
-        'Diese Seriennummer gehört nicht zu diesem Kunden und dieser Produktgruppe',
-        { status: 400 }
-      )
-    }
-
-    targetSerial = {
-      id: selectedSerial.id,
-      serial_number: selectedSerial.serial_number,
-    }
-  } else if (mode === 'new') {
-    const newSerialNumber = String(
-      formData.get('new_serial_number') ?? ''
-    ).trim()
-
-    if (!newSerialNumber) {
-      return new NextResponse(
-        'Bitte eine neue Seriennummer eingeben',
-        { status: 400 }
-      )
-    }
-
-    if (newSerialNumber.length > 150) {
-      return new NextResponse(
-        'Seriennummer ist zu lang',
-        { status: 400 }
-      )
-    }
-
-    const { data: createdSerial, error } = await admin
-      .from('serial_numbers')
-      .insert({
-        serial_number: newSerialNumber,
-        customer_id: serviceRequest.customer_id,
-        product_group_id: serviceRequest.product_group_id,
-      })
-      .select('id, serial_number')
-      .single()
-
-    if (error || !createdSerial) {
-      console.error('Create serial number error:', error)
-
-      if (error?.code === '23505') {
-        return new NextResponse(
-          'Diese Seriennummer existiert bereits. Bitte die vorhandene Seriennummer auswählen.',
-          { status: 409 }
-        )
-      }
-
-      return new NextResponse(
-        'Neue Seriennummer konnte nicht angelegt werden',
-        { status: 500 }
-      )
-    }
-
-    newlyCreatedSerialId = createdSerial.id
-    targetSerial = createdSerial
-  } else {
+  if (currentSerialError || !currentSerial) {
     return new NextResponse(
-      'Ungültige Aktion',
-      { status: 400 }
+      'Aktuelle Seriennummer wurde nicht gefunden',
+      { status: 404 }
     )
   }
 
-  if (!targetSerial) {
-    return new NextResponse(
-      'Keine Seriennummer ausgewählt',
-      { status: 400 }
-    )
-  }
-
-  if (targetSerial.id === serviceRequest.serial_number_id) {
+  if (
+    currentSerial.serial_number === correctedSerialNumber
+  ) {
     return NextResponse.redirect(
       new URL(`/admin/service/${id}`, request.url),
       303
     )
   }
 
-  const { error: updateError } = await admin
-    .from('service_requests')
-    .update({
-      serial_number_id: targetSerial.id,
-    })
-    .eq('id', id)
+  /*
+   * Alle Servicefälle merken, die aktuell an der
+   * falschen SN hängen.
+   */
+  const { data: affectedRequests, error: affectedError } =
+    await admin
+      .from('service_requests')
+      .select('id')
+      .eq('serial_number_id', currentSerial.id)
 
-  if (updateError) {
-    console.error('Service serial update error:', updateError)
-
-    if (newlyCreatedSerialId) {
-      await admin
-        .from('serial_numbers')
-        .delete()
-        .eq('id', newlyCreatedSerialId)
-    }
+  if (affectedError) {
+    console.error(
+      'Affected service requests error:',
+      affectedError
+    )
 
     return new NextResponse(
-      'Seriennummer konnte dem Servicefall nicht zugeordnet werden',
+      'Verknüpfte Servicefälle konnten nicht geprüft werden',
       { status: 500 }
     )
   }
 
-  const oldSerialNumber =
-    oldSerial?.serial_number ?? 'Unbekannt'
+  /*
+   * Prüfen, ob die korrigierte SN bereits existiert.
+   */
+  const { data: existingSerial, error: existingError } =
+    await admin
+      .from('serial_numbers')
+      .select(`
+        id,
+        serial_number,
+        customer_id,
+        product_group_id
+      `)
+      .ilike('serial_number', correctedSerialNumber)
+      .maybeSingle()
 
-  const { error: noteError } = await admin
-    .from('service_notes')
-    .insert({
-      service_request_id: id,
-      note:
-        `Seriennummer korrigiert: ` +
-        `${oldSerialNumber} → ${targetSerial.serial_number}`,
-      created_by: userId,
-    })
-
-  if (noteError) {
+  if (existingError) {
     console.error(
-      'Serial correction audit note error:',
-      noteError
+      'Existing serial lookup error:',
+      existingError
     )
+
+    return new NextResponse(
+      'Seriennummer konnte nicht geprüft werden',
+      { status: 500 }
+    )
+  }
+
+  /*
+   * Fall 1:
+   * Die richtige SN existiert bereits.
+   *
+   * Dann werden alle Fälle von der falschen SN
+   * auf die richtige SN umgehängt und die falsche
+   * SN anschließend gelöscht.
+   */
+  if (
+    existingSerial &&
+    existingSerial.id !== currentSerial.id
+  ) {
+    if (
+      existingSerial.customer_id !==
+        serviceRequest.customer_id ||
+      existingSerial.product_group_id !==
+        serviceRequest.product_group_id
+    ) {
+      return new NextResponse(
+        'Die korrigierte Seriennummer existiert bereits bei einem anderen Kunden oder einer anderen Produktgruppe.',
+        { status: 409 }
+      )
+    }
+
+    const { error: reassignError } = await admin
+      .from('service_requests')
+      .update({
+        serial_number_id: existingSerial.id,
+      })
+      .eq('serial_number_id', currentSerial.id)
+
+    if (reassignError) {
+      console.error(
+        'Serial reassignment error:',
+        reassignError
+      )
+
+      return new NextResponse(
+        'Servicefälle konnten nicht auf die richtige Seriennummer umgestellt werden',
+        { status: 500 }
+      )
+    }
+
+    const { error: deleteError } = await admin
+      .from('serial_numbers')
+      .delete()
+      .eq('id', currentSerial.id)
+
+    if (deleteError) {
+      console.error(
+        'Old serial delete error:',
+        deleteError
+      )
+
+      return new NextResponse(
+        'Die alte Seriennummer konnte nicht entfernt werden',
+        { status: 500 }
+      )
+    }
+  } else {
+    /*
+     * Fall 2:
+     * Die korrigierte SN existiert noch nicht.
+     *
+     * Dann ändern wir den bestehenden SN-Datensatz
+     * direkt. Dadurch bleiben Kunde und komplette
+     * Servicehistorie erhalten.
+     */
+    const { error: updateError } = await admin
+      .from('serial_numbers')
+      .update({
+        serial_number: correctedSerialNumber,
+      })
+      .eq('id', currentSerial.id)
+
+    if (updateError) {
+      console.error(
+        'Serial correction error:',
+        updateError
+      )
+
+      return new NextResponse(
+        'Seriennummer konnte nicht korrigiert werden',
+        { status: 500 }
+      )
+    }
+  }
+
+  /*
+   * Korrektur zur Nachvollziehbarkeit
+   * in den betroffenen Servicefällen dokumentieren.
+   */
+  const note =
+    `SN-Tippfehler korrigiert: ` +
+    `${currentSerial.serial_number} → ${correctedSerialNumber}`
+
+  const notes =
+    (affectedRequests ?? []).map((service) => ({
+      service_request_id: service.id,
+      note,
+      created_by: userId,
+    }))
+
+  if (notes.length > 0) {
+    const { error: noteError } = await admin
+      .from('service_notes')
+      .insert(notes)
+
+    if (noteError) {
+      console.error(
+        'Serial correction note error:',
+        noteError
+      )
+    }
   }
 
   return NextResponse.redirect(

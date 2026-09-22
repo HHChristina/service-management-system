@@ -87,23 +87,6 @@ export default async function ServiceRequestPage({
     notFound()
   }
 
-  const {
-    data: availableSerialNumbers,
-    error: availableSerialNumbersError,
-  } = await supabase
-    .from('serial_numbers')
-    .select('id, serial_number')
-    .eq('customer_id', serviceRequest.customer_id)
-    .eq('product_group_id', serviceRequest.product_group_id)
-    .order('serial_number')
-
-  if (availableSerialNumbersError) {
-    console.error(
-      'Available serial numbers error:',
-      availableSerialNumbersError
-    )
-  }
-
   const [
     historyResult,
     notesResult,
@@ -316,110 +299,57 @@ export default async function ServiceRequestPage({
         </div>
 
         <section className="mt-6 rounded-2xl bg-white p-6 shadow-sm">
-          <div>
-            <h2 className="text-xl font-bold">
-              Seriennummer korrigieren
-            </h2>
+          <h2 className="text-xl font-bold">
+            SN-Tippfehler korrigieren
+          </h2>
 
-            <p className="mt-2 text-sm text-gray-500">
-              Die bestehende Seriennummer wird nicht verändert.
-              Es wird ausschließlich die Zuordnung dieses Servicefalls korrigiert.
+          <p className="mt-2 text-sm text-gray-500">
+            Diese Funktion ist ausschließlich für falsch eingegebene
+            Seriennummern gedacht. Die bisherige falsche SN wird durch
+            die tatsächlich am Gerät vorhandene SN ersetzt.
+          </p>
+
+          <div className="mt-5 rounded-xl border border-amber-200 bg-amber-50 p-4">
+            <p className="text-sm font-medium text-amber-900">
+              Aktuell gespeicherte SN
             </p>
 
-            <p className="mt-3 text-sm">
-              Aktuelle SN:{' '}
-              <span className="font-semibold">
-                {serialNumber?.serial_number ?? '–'}
-              </span>
+            <p className="mt-1 font-mono text-lg font-bold text-amber-950">
+              {serialNumber?.serial_number ?? '–'}
             </p>
           </div>
 
-          <div className="mt-6 grid gap-6 md:grid-cols-2">
-            <div className="rounded-xl border border-gray-200 p-5">
-              <h3 className="font-semibold">
-                Vorhandene Seriennummer verwenden
-              </h3>
+          <form
+            action={`/api/admin/service/${serviceRequest.id}/serial`}
+            method="post"
+            className="mt-5"
+          >
+            <label
+              htmlFor="corrected_serial_number"
+              className="mb-2 block text-sm font-medium"
+            >
+              Tatsächliche Seriennummer
+            </label>
 
-              <p className="mt-1 text-sm text-gray-500">
-                Es werden nur Seriennummern dieses Kunden
-                und dieser Produktgruppe angezeigt.
-              </p>
+            <div className="flex flex-col gap-3 sm:flex-row">
+              <input
+                id="corrected_serial_number"
+                name="corrected_serial_number"
+                type="text"
+                required
+                maxLength={150}
+                defaultValue={serialNumber?.serial_number ?? ''}
+                className="w-full rounded-lg border border-gray-300 px-4 py-3 font-mono"
+              />
 
-              <form
-                action={`/api/admin/service/${serviceRequest.id}/serial`}
-                method="post"
-                className="mt-4"
+              <button
+                type="submit"
+                className="whitespace-nowrap rounded-lg bg-black px-5 py-3 font-medium text-white hover:bg-gray-800"
               >
-                <input
-                  type="hidden"
-                  name="mode"
-                  value="existing"
-                />
-
-                <select
-                  name="serial_number_id"
-                  defaultValue={serviceRequest.serial_number_id}
-                  required
-                  className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3"
-                >
-                  {(availableSerialNumbers ?? []).map((item) => (
-                    <option
-                      key={item.id}
-                      value={item.id}
-                    >
-                      {item.serial_number}
-                    </option>
-                  ))}
-                </select>
-
-                <button
-                  type="submit"
-                  className="mt-4 rounded-lg bg-black px-5 py-3 font-medium text-white hover:bg-gray-800"
-                >
-                  SN-Zuordnung ändern
-                </button>
-              </form>
+                SN korrigieren
+              </button>
             </div>
-
-            <div className="rounded-xl border border-gray-200 p-5">
-              <h3 className="font-semibold">
-                Neue Seriennummer anlegen
-              </h3>
-
-              <p className="mt-1 text-sm text-gray-500">
-                Die neue SN wird diesem Kunden und der aktuellen
-                Produktgruppe fest zugeordnet.
-              </p>
-
-              <form
-                action={`/api/admin/service/${serviceRequest.id}/serial`}
-                method="post"
-                className="mt-4"
-              >
-                <input
-                  type="hidden"
-                  name="mode"
-                  value="new"
-                />
-
-                <input
-                  type="text"
-                  name="new_serial_number"
-                  required
-                  maxLength={150}
-                  placeholder="Neue Seriennummer"
-                  className="w-full rounded-lg border border-gray-300 px-4 py-3"
-                />
-
-                <button
-                  type="submit"
-                  className="mt-4 rounded-lg bg-black px-5 py-3 font-medium text-white hover:bg-gray-800"
-                >
-                  Neue SN anlegen und zuordnen
-                </button>
-              </form>
-            </div>
-          </div>
+          </form>
         </section>
 
         <section className="mt-6 rounded-2xl bg-white p-6 shadow-sm">
