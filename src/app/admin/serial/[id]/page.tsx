@@ -41,6 +41,9 @@ export default async function SerialNumberPage({
       serial_number,
       customer_id,
       product_group_id,
+      installation_date,
+      warranty_type,
+      warranty_until,
       customers (
         id,
         name,
@@ -154,6 +157,167 @@ export default async function SerialNumberPage({
               </p>
             </div>
           </div>
+        </section>
+
+        <section className="mt-6 rounded-2xl bg-white p-6 shadow-sm">
+          <h2 className="text-xl font-bold">
+            Installation & Garantie
+          </h2>
+
+          <div className="mt-5 grid gap-6 md:grid-cols-3">
+            <div>
+              <p className="text-sm text-gray-500">
+                Installationsdatum
+              </p>
+
+              <p className="mt-1 font-semibold">
+                {serialNumber.installation_date
+                  ? new Intl.DateTimeFormat('de-AT', {
+                      dateStyle: 'medium',
+                      timeZone: 'Europe/Vienna',
+                    }).format(
+                      new Date(
+                        `${serialNumber.installation_date}T12:00:00Z`
+                      )
+                    )
+                  : '–'}
+              </p>
+            </div>
+
+            <div>
+              <p className="text-sm text-gray-500">
+                Garantietyp
+              </p>
+
+              <p className="mt-1 font-semibold">
+                {serialNumber.warranty_type === '3_years_on_site' &&
+                  '3 Jahre Vor Ort'}
+
+                {serialNumber.warranty_type === '3_years_bring_in' &&
+                  '3 Jahre Bring-In'}
+
+                {serialNumber.warranty_type === '5_years_on_site' &&
+                  '5 Jahre Vor Ort'}
+
+                {serialNumber.warranty_type === '5_years_bring_in' &&
+                  '5 Jahre Bring-In'}
+
+                {!serialNumber.warranty_type && '–'}
+              </p>
+            </div>
+
+            <div>
+              <p className="text-sm text-gray-500">
+                Garantie bis
+              </p>
+
+              {serialNumber.warranty_until ? (
+                <span
+                  className={`mt-1 inline-flex rounded-full px-3 py-1 text-sm font-semibold ${
+                    serialNumber.warranty_until >=
+                    new Date().toISOString().slice(0, 10)
+                      ? 'bg-green-100 text-green-800'
+                      : 'bg-red-100 text-red-800'
+                  }`}
+                >
+                  {new Intl.DateTimeFormat('de-AT', {
+                    dateStyle: 'medium',
+                    timeZone: 'Europe/Vienna',
+                  }).format(
+                    new Date(
+                      `${serialNumber.warranty_until}T12:00:00Z`
+                    )
+                  )}
+                </span>
+              ) : (
+                <p className="mt-1 font-semibold">
+                  –
+                </p>
+              )}
+            </div>
+          </div>
+
+          <div className="my-6 border-t" />
+
+          <h3 className="font-semibold">
+            Garantiedaten bearbeiten
+          </h3>
+
+          <p className="mt-1 text-sm text-gray-500">
+            Nur für interne Mitarbeiter. Das Garantieende wird automatisch berechnet.
+          </p>
+
+          <form
+            action={`/api/admin/serial/${serialNumber.id}/warranty`}
+            method="post"
+            className="mt-5 grid gap-5 md:grid-cols-2"
+          >
+            <div>
+              <label
+                htmlFor="installation_date"
+                className="mb-2 block text-sm font-medium"
+              >
+                Installationsdatum
+              </label>
+
+              <input
+                id="installation_date"
+                name="installation_date"
+                type="date"
+                defaultValue={
+                  serialNumber.installation_date ?? ''
+                }
+                className="w-full rounded-lg border border-gray-300 px-4 py-3"
+              />
+            </div>
+
+            <div>
+              <label
+                htmlFor="warranty_type"
+                className="mb-2 block text-sm font-medium"
+              >
+                Garantietyp
+              </label>
+
+              <select
+                id="warranty_type"
+                name="warranty_type"
+                defaultValue={
+                  serialNumber.warranty_type ?? ''
+                }
+                className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3"
+              >
+                <option value="">
+                  Keine Angabe
+                </option>
+
+                <option value="3_years_on_site">
+                  3 Jahre Vor Ort
+                </option>
+
+                <option value="3_years_bring_in">
+                  3 Jahre Bring-In
+                </option>
+
+                <option value="5_years_on_site">
+                  5 Jahre Vor Ort
+                </option>
+
+                <option value="5_years_bring_in">
+                  5 Jahre Bring-In
+                </option>
+              </select>
+            </div>
+
+            <div className="md:col-span-2">
+              <button
+                type="submit"
+                className="rounded-lg bg-black px-5 py-3 font-medium text-white hover:bg-gray-800"
+              >
+                Garantiedaten speichern
+              </button>
+            </div>
+          </form>
         </section>
 
         <section className="mt-6 rounded-2xl bg-white p-6 shadow-sm">
