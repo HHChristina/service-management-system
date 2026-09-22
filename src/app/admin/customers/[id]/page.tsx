@@ -1,7 +1,7 @@
 import Link from 'next/link'
-import StatusBadge from '@/components/admin/status-badge'
 import { notFound, redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import StatusBadge from '@/components/admin/status-badge'
 
 export const dynamic = 'force-dynamic'
 
@@ -135,7 +135,7 @@ export default async function CustomerPage({
             </span>
           </div>
 
-          <div className="mt-6 grid gap-6 md:grid-cols-2">
+          <div className="mt-6 grid gap-6 md:grid-cols-3">
             <div>
               <p className="text-sm text-gray-500">
                 E-Mail
@@ -151,15 +151,6 @@ export default async function CustomerPage({
               </p>
               <p className="mt-1 font-medium">
                 {customer.phone || '–'}
-              </p>
-            </div>
-
-            <div>
-              <p className="text-sm text-gray-500">
-                E-Mail
-              </p>
-              <p className="mt-1 font-medium">
-                {customer.email || '–'}
               </p>
             </div>
 
@@ -300,135 +291,14 @@ export default async function CustomerPage({
         </section>
 
         <section className="mt-6 rounded-2xl bg-white p-6 shadow-sm">
-          <h2 className="text-xl font-bold">
-            Kundendaten bearbeiten
-          </h2>
+          <div>
+            <h2 className="text-xl font-bold">
+              Seriennummern
+            </h2>
 
-          <form
-            action={`/api/admin/customers/${customer.id}`}
-            method="post"
-            className="mt-5 grid gap-5 md:grid-cols-2"
-          >
-            <div className="md:col-span-2">
-              <label
-                htmlFor="name"
-                className="mb-2 block text-sm font-medium"
-              >
-                Kundenname
-              </label>
-
-              <input
-                id="name"
-                name="name"
-                required
-                defaultValue={customer.name}
-                className="w-full rounded-lg border border-gray-300 px-4 py-3"
-              />
-            </div>
-
-            <div>
-              <label
-                htmlFor="email"
-                className="mb-2 block text-sm font-medium"
-              >
-                E-Mail
-              </label>
-
-              <input
-                id="email"
-                name="email"
-                type="email"
-                defaultValue={customer.email ?? ''}
-                className="w-full rounded-lg border border-gray-300 px-4 py-3"
-              />
-            </div>
-
-            <div>
-              <label
-                htmlFor="phone"
-                className="mb-2 block text-sm font-medium"
-              >
-                Telefon
-              </label>
-
-              <input
-                id="phone"
-                name="phone"
-                defaultValue={customer.phone ?? ''}
-                className="w-full rounded-lg border border-gray-300 px-4 py-3"
-              />
-            </div>
-
-            <div>
-              <label
-                htmlFor="postal_code"
-                className="mb-2 block text-sm font-medium"
-              >
-                PLZ
-              </label>
-
-              <input
-                id="postal_code"
-                name="postal_code"
-                defaultValue={customer.postal_code ?? ''}
-                className="w-full rounded-lg border border-gray-300 px-4 py-3"
-              />
-            </div>
-
-            <div>
-              <label
-                htmlFor="city"
-                className="mb-2 block text-sm font-medium"
-              >
-                Ort
-              </label>
-
-              <input
-                id="city"
-                name="city"
-                defaultValue={customer.city ?? ''}
-                className="w-full rounded-lg border border-gray-300 px-4 py-3"
-              />
-            </div>
-
-            <div>
-              <label
-                htmlFor="country"
-                className="mb-2 block text-sm font-medium"
-              >
-                Land
-              </label>
-
-              <input
-                id="country"
-                name="country"
-                defaultValue={customer.country ?? ''}
-                className="w-full rounded-lg border border-gray-300 px-4 py-3"
-              />
-            </div>
-
-            <div className="flex items-end">
-              <button
-                type="submit"
-                className="rounded-lg bg-black px-5 py-3 font-medium text-white hover:bg-gray-800"
-              >
-                Kundendaten speichern
-              </button>
-            </div>
-          </form>
-        </section>
-
-        <section className="mt-6 rounded-2xl bg-white p-6 shadow-sm">
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-xl font-bold">
-                Seriennummern
-              </h2>
-
-              <p className="mt-1 text-sm text-gray-500">
-                {serialNumbers.length} zugeordnete Seriennummern
-              </p>
-            </div>
+            <p className="mt-1 text-sm text-gray-500">
+              {serialNumbers.length} zugeordnete Seriennummern
+            </p>
           </div>
 
           {serialNumbers.length === 0 ? (
