@@ -1,8 +1,70 @@
+import { createHmac } from 'node:crypto'
 import { NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 
 export async function POST(request: Request) {
-  try {
+  
+  const rateLimitSalt = process.env.RATE_LIMIT_SALT
+
+  if (!rateLimitSalt) {
+    console.error('RATE_LIMIT_SALT is missing')
+
+    return NextResponse.json(
+      { error: 'Serverkonfiguration unvollständig.' },
+      { status: 500 }
+    )
+  }
+
+  const forwardedFor = request.headers.get('x-forwarded-for')
+
+  const clientIp =
+    forwardedFor?.split(',')[0]?.trim() ||
+    request.headers.get('x-real-ip')?.trim() ||
+    'unknown'
+
+  const rateKey = createHmac('sha256', rateLimitSalt)
+    .update(`service:${clientIp}`)
+    .digest('hex')
+
+  const rateLimitClient = createAdminClient()
+
+  const {
+    data: rateLimitAllowed,
+    error: rateLimitError,
+  } = await rateLimitClient.rpc('check_service_rate_limit', {
+    p_rate_key: rateKey,
+    p_limit: 12,
+    p_window_seconds: 600,
+  })
+
+  if (rateLimitError) {
+    console.error('Service rate-limit error:', rateLimitError)
+
+    return NextResponse.json(
+      {
+        error:
+          'Die Serviceanfrage kann momentan nicht verarbeitet werden. Bitte versuchen Sie es später erneut.',
+      },
+      { status: 503 }
+    )
+  }
+
+  if (!rateLimitAllowed) {
+    return NextResponse.json(
+      {
+        error:
+          'Zu viele Anfragen in kurzer Zeit. Bitte versuchen Sie es in einigen Minuten erneut.',
+      },
+      {
+        status: 429,
+        headers: {
+          'Retry-After': '600',
+        },
+      }
+    )
+  }
+
+try {
     const body = await request.json()
 
     const requiredFields = [
