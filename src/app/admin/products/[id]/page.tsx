@@ -1,15 +1,9 @@
 import Link from 'next/link'
+import StatusBadge from '@/components/admin/status-badge'
 import { notFound, redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 
 export const dynamic = 'force-dynamic'
-
-function statusLabel(status: string) {
-  if (status === 'new') return 'Neu'
-  if (status === 'in_progress') return 'In Bearbeitung'
-  if (status === 'completed') return 'Abgeschlossen'
-  return status
-}
 
 export default async function ProductGroupPage({
   params,
@@ -257,7 +251,7 @@ export default async function ProductGroupPage({
                         </td>
 
                         <td className="whitespace-nowrap px-3 py-4">
-                          {statusLabel(request.status)}
+                          <StatusBadge status={request.status} />
                         </td>
 
                         <td className="px-3 py-4">

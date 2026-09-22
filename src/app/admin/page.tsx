@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import StatusBadge from '@/components/admin/status-badge'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 
@@ -179,32 +180,35 @@ export default async function AdminPage() {
 
         <div className="mt-8 grid gap-6 md:grid-cols-3">
 
-          <div className="rounded-2xl bg-white p-6 shadow-sm">
-            <p className="text-sm font-medium text-gray-500">
-              Neu
-            </p>
-            <p className="mt-2 text-4xl font-bold">
+          <Link
+            href="/admin/service?status=new"
+            className="rounded-2xl border border-amber-200 bg-white p-6 shadow-sm transition hover:shadow-md"
+          >
+            <StatusBadge status="new" />
+            <p className="mt-3 text-4xl font-bold">
               {newResult.count ?? 0}
             </p>
-          </div>
+          </Link>
 
-          <div className="rounded-2xl bg-white p-6 shadow-sm">
-            <p className="text-sm font-medium text-gray-500">
-              In Bearbeitung
-            </p>
-            <p className="mt-2 text-4xl font-bold">
+          <Link
+            href="/admin/service?status=in_progress"
+            className="rounded-2xl border border-blue-200 bg-white p-6 shadow-sm transition hover:shadow-md"
+          >
+            <StatusBadge status="in_progress" />
+            <p className="mt-3 text-4xl font-bold">
               {inProgressResult.count ?? 0}
             </p>
-          </div>
+          </Link>
 
-          <div className="rounded-2xl bg-white p-6 shadow-sm">
-            <p className="text-sm font-medium text-gray-500">
-              Abgeschlossen
-            </p>
-            <p className="mt-2 text-4xl font-bold">
+          <Link
+            href="/admin/service?status=completed"
+            className="rounded-2xl border border-green-200 bg-white p-6 shadow-sm transition hover:shadow-md"
+          >
+            <StatusBadge status="completed" />
+            <p className="mt-3 text-4xl font-bold">
               {completedResult.count ?? 0}
             </p>
-          </div>
+          </Link>
 
         </div>
 
@@ -290,11 +294,7 @@ export default async function AdminPage() {
                         </td>
 
                         <td className="whitespace-nowrap px-3 py-4">
-                          {request.status === 'new' && 'Neu'}
-                          {request.status === 'in_progress' &&
-                            'In Bearbeitung'}
-                          {request.status === 'completed' &&
-                            'Abgeschlossen'}
+                          <StatusBadge status={request.status} />
                         </td>
 
                         <td className="px-3 py-4">
