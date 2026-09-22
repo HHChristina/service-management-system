@@ -233,7 +233,12 @@ export default async function CustomerPage({
                         className="border-b last:border-0"
                       >
                         <td className="px-3 py-4 font-semibold">
-                          {item.serial_number}
+                          <Link
+                            href={`/admin/serial/${item.id}`}
+                            className="underline decoration-gray-300 underline-offset-4 hover:decoration-black"
+                          >
+                            {item.serial_number}
+                          </Link>
                         </td>
 
                         <td className="px-3 py-4">
