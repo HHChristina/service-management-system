@@ -48,6 +48,9 @@ export default async function ServiceRequestPage({
     .from('service_requests')
     .select(`
       id,
+      customer_id,
+      product_group_id,
+      serial_number_id,
       service_number,
       status,
       problem_description,
@@ -82,6 +85,23 @@ export default async function ServiceRequestPage({
 
   if (error || !serviceRequest) {
     notFound()
+  }
+
+  const {
+    data: availableSerialNumbers,
+    error: availableSerialNumbersError,
+  } = await supabase
+    .from('serial_numbers')
+    .select('id, serial_number')
+    .eq('customer_id', serviceRequest.customer_id)
+    .eq('product_group_id', serviceRequest.product_group_id)
+    .order('serial_number')
+
+  if (availableSerialNumbersError) {
+    console.error(
+      'Available serial numbers error:',
+      availableSerialNumbersError
+    )
   }
 
   const [
@@ -294,6 +314,113 @@ export default async function ServiceRequestPage({
           </section>
 
         </div>
+
+        <section className="mt-6 rounded-2xl bg-white p-6 shadow-sm">
+          <div>
+            <h2 className="text-xl font-bold">
+              Seriennummer korrigieren
+            </h2>
+
+            <p className="mt-2 text-sm text-gray-500">
+              Die bestehende Seriennummer wird nicht verändert.
+              Es wird ausschließlich die Zuordnung dieses Servicefalls korrigiert.
+            </p>
+
+            <p className="mt-3 text-sm">
+              Aktuelle SN:{' '}
+              <span className="font-semibold">
+                {serialNumber?.serial_number ?? '–'}
+              </span>
+            </p>
+          </div>
+
+          <div className="mt-6 grid gap-6 md:grid-cols-2">
+            <div className="rounded-xl border border-gray-200 p-5">
+              <h3 className="font-semibold">
+                Vorhandene Seriennummer verwenden
+              </h3>
+
+              <p className="mt-1 text-sm text-gray-500">
+                Es werden nur Seriennummern dieses Kunden
+                und dieser Produktgruppe angezeigt.
+              </p>
+
+              <form
+                action={`/api/admin/service/${serviceRequest.id}/serial`}
+                method="post"
+                className="mt-4"
+              >
+                <input
+                  type="hidden"
+                  name="mode"
+                  value="existing"
+                />
+
+                <select
+                  name="serial_number_id"
+                  defaultValue={serviceRequest.serial_number_id}
+                  required
+                  className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3"
+                >
+                  {(availableSerialNumbers ?? []).map((item) => (
+                    <option
+                      key={item.id}
+                      value={item.id}
+                    >
+                      {item.serial_number}
+                    </option>
+                  ))}
+                </select>
+
+                <button
+                  type="submit"
+                  className="mt-4 rounded-lg bg-black px-5 py-3 font-medium text-white hover:bg-gray-800"
+                >
+                  SN-Zuordnung ändern
+                </button>
+              </form>
+            </div>
+
+            <div className="rounded-xl border border-gray-200 p-5">
+              <h3 className="font-semibold">
+                Neue Seriennummer anlegen
+              </h3>
+
+              <p className="mt-1 text-sm text-gray-500">
+                Die neue SN wird diesem Kunden und der aktuellen
+                Produktgruppe fest zugeordnet.
+              </p>
+
+              <form
+                action={`/api/admin/service/${serviceRequest.id}/serial`}
+                method="post"
+                className="mt-4"
+              >
+                <input
+                  type="hidden"
+                  name="mode"
+                  value="new"
+                />
+
+                <input
+                  type="text"
+                  name="new_serial_number"
+                  required
+                  maxLength={150}
+                  placeholder="Neue Seriennummer"
+                  className="w-full rounded-lg border border-gray-300 px-4 py-3"
+                />
+
+                <button
+                  type="submit"
+                  className="mt-4 rounded-lg bg-black px-5 py-3 font-medium text-white hover:bg-gray-800"
+                >
+                  Neue SN anlegen und zuordnen
+                </button>
+              </form>
+            </div>
+          </div>
+        </section>
 
         <section className="mt-6 rounded-2xl bg-white p-6 shadow-sm">
           <h2 className="text-xl font-bold">
