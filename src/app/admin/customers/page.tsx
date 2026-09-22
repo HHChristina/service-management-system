@@ -47,12 +47,10 @@ export default async function CustomersPage({
         name,
         email,
         phone,
-        address,
         postal_code,
         city,
         country,
-        is_active,
-        created_at
+        is_active
       `)
       .order('name'),
 
@@ -64,6 +62,21 @@ export default async function CustomersPage({
       .from('service_requests')
       .select('customer_id'),
   ])
+
+  if (customersResult.error) {
+    console.error('Customers query error:', customersResult.error)
+    throw new Error(
+      `Kunden konnten nicht geladen werden: ${customersResult.error.message}`
+    )
+  }
+
+  if (serialNumbersResult.error) {
+    console.error('Serial numbers query error:', serialNumbersResult.error)
+  }
+
+  if (serviceRequestsResult.error) {
+    console.error('Service requests query error:', serviceRequestsResult.error)
+  }
 
   const customers = customersResult.data ?? []
   const serialNumbers = serialNumbersResult.data ?? []
