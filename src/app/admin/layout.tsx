@@ -56,6 +56,13 @@ export default function AdminLayout({
               Produktgruppen
             </Link>
 
+            <Link
+              href="/admin/users"
+              className="rounded-lg px-3 py-2 font-medium hover:bg-gray-100"
+            >
+              Mitarbeiter
+            </Link>
+
             <form action="/auth/signout" method="post">
               <button
                 type="submit"
