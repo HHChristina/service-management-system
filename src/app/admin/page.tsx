@@ -163,14 +163,17 @@ export default async function AdminPage() {
             </p>
           </Link>
 
-          <div className="rounded-2xl bg-white p-6 shadow-sm">
+          <Link
+            href="/admin/products"
+            className="block rounded-2xl bg-white p-6 shadow-sm transition hover:shadow-md"
+          >
             <p className="text-sm text-gray-500">
               Produktgruppen
             </p>
             <p className="mt-2 text-3xl font-bold">
               {productGroupsResult.count ?? 0}
             </p>
-          </div>
+          </Link>
 
         </div>
 
