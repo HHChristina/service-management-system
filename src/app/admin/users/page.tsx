@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import DeleteUserButton from '@/components/admin/delete-user-button'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 
@@ -232,29 +233,40 @@ export default async function UsersPage() {
                           Eigener Benutzer
                         </span>
                       ) : (
-                        <form
-                          action={`/api/admin/users/${user.id}/toggle`}
-                          method="post"
-                        >
-                          <input
-                            type="hidden"
-                            name="is_active"
-                            value={
-                              user.is_active
-                                ? 'false'
-                                : 'true'
+                        <div className="flex flex-wrap gap-2">
+                          <form
+                            action={`/api/admin/users/${user.id}/toggle`}
+                            method="post"
+                          >
+                            <input
+                              type="hidden"
+                              name="is_active"
+                              value={
+                                user.is_active
+                                  ? 'false'
+                                  : 'true'
+                              }
+                            />
+
+                            <button
+                              type="submit"
+                              className="rounded-lg border border-gray-300 px-4 py-2 font-medium hover:bg-gray-50"
+                            >
+                              {user.is_active
+                                ? 'Deaktivieren'
+                                : 'Aktivieren'}
+                            </button>
+                          </form>
+
+                          <DeleteUserButton
+                            userId={user.id}
+                            userName={
+                              user.display_name ||
+                              user.email ||
+                              'Benutzer'
                             }
                           />
-
-                          <button
-                            type="submit"
-                            className="rounded-lg border border-gray-300 px-4 py-2 font-medium hover:bg-gray-50"
-                          >
-                            {user.is_active
-                              ? 'Deaktivieren'
-                              : 'Aktivieren'}
-                          </button>
-                        </form>
+                        </div>
                       )}
                     </td>
                   </tr>

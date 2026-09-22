@@ -1,16 +1,35 @@
 import Link from 'next/link'
 import type { ReactNode } from 'react'
+import { createClient } from '@/lib/supabase/server'
 
-export default function AdminLayout({
+export default async function AdminLayout({
   children,
 }: {
   children: ReactNode
 }) {
+  const supabase = await createClient()
+
+  const { data: claimsData } = await supabase.auth.getClaims()
+  const userId = claimsData?.claims?.sub
+
+  let isAdmin = false
+
+  if (userId) {
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role, is_active')
+      .eq('id', userId)
+      .single()
+
+    isAdmin =
+      profile?.role === 'admin' &&
+      profile?.is_active === true
+  }
+
   return (
     <>
       <header className="border-b bg-white">
         <div className="mx-auto flex max-w-7xl flex-col gap-4 px-6 py-4 md:flex-row md:items-center md:justify-between md:px-8">
-
           <div>
             <Link
               href="/admin"
@@ -56,12 +75,14 @@ export default function AdminLayout({
               Produktgruppen
             </Link>
 
-            <Link
-              href="/admin/users"
-              className="rounded-lg px-3 py-2 font-medium hover:bg-gray-100"
-            >
-              Mitarbeiter
-            </Link>
+            {isAdmin && (
+              <Link
+                href="/admin/users"
+                className="rounded-lg px-3 py-2 font-medium hover:bg-gray-100"
+              >
+                Mitarbeiter
+              </Link>
+            )}
 
             <form action="/auth/signout" method="post">
               <button
@@ -72,7 +93,6 @@ export default function AdminLayout({
               </button>
             </form>
           </nav>
-
         </div>
       </header>
 
