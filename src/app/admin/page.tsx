@@ -139,14 +139,17 @@ export default async function AdminPage() {
             </p>
           </div>
 
-          <div className="rounded-2xl bg-white p-6 shadow-sm">
+          <Link
+            href="/admin/customers"
+            className="block rounded-2xl bg-white p-6 shadow-sm transition hover:shadow-md"
+          >
             <p className="text-sm text-gray-500">
               Kunden
             </p>
             <p className="mt-2 text-3xl font-bold">
               {customersResult.count ?? 0}
             </p>
-          </div>
+          </Link>
 
           <div className="rounded-2xl bg-white p-6 shadow-sm">
             <p className="text-sm text-gray-500">
