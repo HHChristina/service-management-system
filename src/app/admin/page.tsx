@@ -210,6 +210,13 @@ export default async function AdminPage() {
                 Die zuletzt eingegangenen Serviceanfragen
               </p>
             </div>
+
+            <Link
+              href="/admin/service"
+              className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium hover:bg-gray-50"
+            >
+              Alle Servicefälle
+            </Link>
           </div>
 
           {recentRequests.length === 0 ? (
