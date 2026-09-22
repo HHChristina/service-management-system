@@ -47,7 +47,6 @@ export default async function CustomerPage({
       name,
       email,
       phone,
-      address,
       postal_code,
       city,
       country,
@@ -163,10 +162,10 @@ export default async function CustomerPage({
 
             <div>
               <p className="text-sm text-gray-500">
-                Adresse
+                E-Mail
               </p>
               <p className="mt-1 font-medium">
-                {customer.address || '–'}
+                {customer.email || '–'}
               </p>
             </div>
 
