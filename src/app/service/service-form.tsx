@@ -251,6 +251,23 @@ export default function ServiceForm({
       onSubmit={handleSubmit}
       className="mt-8 space-y-6"
     >
+        <div
+          aria-hidden="true"
+          className="absolute left-[-9999px] h-px w-px overflow-hidden"
+        >
+          <label htmlFor="website">
+            Website
+          </label>
+
+          <input
+            id="website"
+            name="website"
+            type="text"
+            tabIndex={-1}
+            autoComplete="off"
+          />
+        </div>
+
       <div>
         <label className="mb-2 block font-medium">
           Firma / Kunde *
