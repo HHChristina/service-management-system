@@ -79,7 +79,8 @@ export default async function ServiceRequestPage({
       ),
       serial_numbers (
         id,
-        serial_number
+        serial_number,
+        warranty_until
       )
     `)
     .eq('id', id)
@@ -146,6 +147,25 @@ export default async function ServiceRequestPage({
   const serialNumber = Array.isArray(serviceRequest.serial_numbers)
     ? serviceRequest.serial_numbers[0]
     : serviceRequest.serial_numbers
+
+  const todayVienna = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Europe/Vienna',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(new Date())
+
+  const warrantyColorClass = !serialNumber?.warranty_until
+    ? 'text-blue-700 decoration-blue-300 hover:decoration-blue-700'
+    : serialNumber.warranty_until >= todayVienna
+      ? 'text-green-700 decoration-green-300 hover:decoration-green-700'
+      : 'text-red-700 decoration-red-300 hover:decoration-red-700'
+
+  const warrantyTitle = !serialNumber?.warranty_until
+    ? 'Garantie noch nicht hinterlegt'
+    : serialNumber.warranty_until >= todayVienna
+      ? `Garantie gültig bis ${serialNumber.warranty_until}`
+      : `Garantie abgelaufen am ${serialNumber.warranty_until}`
 
   return (
     <main className="min-h-screen bg-gray-100 p-6 md:p-8">
@@ -223,7 +243,8 @@ export default async function ServiceRequestPage({
                   {serialNumber?.id ? (
                     <Link
                       href={`/admin/serial/${serialNumber.id}`}
-                      className="underline decoration-gray-300 underline-offset-4 hover:decoration-black"
+                      title={warrantyTitle}
+                      className={`font-semibold underline underline-offset-4 ${warrantyColorClass}`}
                     >
                       {serialNumber.serial_number}
                     </Link>
