@@ -103,13 +103,13 @@ export default async function ServiceRequestPage({
   ] = await Promise.all([
     supabase
       .from('service_status_history')
-      .select('id, old_status, new_status, changed_at')
+      .select('id, old_status, new_status, changed_by, changed_at')
       .eq('service_request_id', id)
       .order('changed_at', { ascending: false }),
 
     supabase
       .from('service_notes')
-      .select('id, note, created_at')
+      .select('id, note, created_by, created_at')
       .eq('service_request_id', id)
       .order('created_at', { ascending: false }),
 
@@ -126,6 +126,34 @@ export default async function ServiceRequestPage({
       .eq('service_request_id', id)
       .order('created_at', { ascending: false }),
   ])
+
+  const userIds = Array.from(
+    new Set(
+      [
+        ...(historyResult.data ?? []).map(
+          (entry) => entry.changed_by
+        ),
+        ...(notesResult.data ?? []).map(
+          (note) => note.created_by
+        ),
+      ].filter(Boolean)
+    )
+  )
+
+  const { data: userProfiles } =
+    userIds.length > 0
+      ? await supabase
+          .from('profiles')
+          .select('id, display_name, email')
+          .in('id', userIds)
+      : { data: [] }
+
+  const userMap = new Map(
+    (userProfiles ?? []).map((user) => [
+      user.id,
+      user.display_name || user.email || 'Unbekannter Benutzer',
+    ])
+  )
 
   const admin = createAdminClient()
 
@@ -620,6 +648,11 @@ export default async function ServiceRequestPage({
                     </p>
 
                     <p className="mt-1 text-sm text-gray-500">
+                      {entry.changed_by
+                        ? userMap.get(entry.changed_by) ??
+                          'Unbekannter Benutzer'
+                        : 'System'}
+                      {' · '}
                       {new Intl.DateTimeFormat('de-AT', {
                         dateStyle: 'short',
                         timeStyle: 'short',
@@ -676,7 +709,12 @@ export default async function ServiceRequestPage({
                       {note.note}
                     </p>
 
-                    <p className="mt-2 text-xs text-gray-500">
+                    <p className="mt-2 text-sm text-gray-500">
+                      {note.created_by
+                        ? userMap.get(note.created_by) ??
+                          'Unbekannter Benutzer'
+                        : 'System'}
+                      {' · '}
                       {new Intl.DateTimeFormat('de-AT', {
                         dateStyle: 'short',
                         timeStyle: 'short',
