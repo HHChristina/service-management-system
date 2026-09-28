@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import ResetSelfRepairMarkerButton from '@/components/admin/reset-self-repair-marker-button'
 import ServiceStatusForm from '@/components/admin/service-status-form'
 import { notFound, redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
@@ -58,6 +59,7 @@ export default async function ServiceRequestPage({
       status,
       handling_status,
       handling_status_manual,
+      self_repair_marker,
       problem_description,
       final_fault,
       created_at,
@@ -190,7 +192,18 @@ export default async function ServiceRequestPage({
               </p>
 
               <div className="mt-1 flex items-center gap-4">
-                <h1 className="text-3xl font-bold">
+                <h1
+                  className={`text-3xl font-bold ${
+                    serviceRequest.self_repair_marker
+                      ? 'text-orange-700'
+                      : ''
+                  }`}
+                  title={
+                    serviceRequest.self_repair_marker
+                      ? 'Dieser Fall hatte Selbstreparatur durch den Kunden'
+                      : undefined
+                  }
+                >
                   {serviceRequest.service_number}
                 </h1>
 
@@ -214,6 +227,15 @@ export default async function ServiceRequestPage({
                   }`}
                 />
               </div>
+
+              {serviceRequest.self_repair_marker &&
+                profile.role === 'admin' && (
+                  <div className="mt-4">
+                    <ResetSelfRepairMarkerButton
+                      serviceRequestId={serviceRequest.id}
+                    />
+                  </div>
+                )}
 
               <p className="mt-2 text-gray-600">
                 Erstellt am{' '}

@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import ServiceNumberLink from '@/components/admin/service-number-link'
 import StatusBadge from '@/components/admin/status-badge'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
@@ -93,6 +94,7 @@ export default async function AdminPage() {
         id,
         service_number,
         status,
+        self_repair_marker,
         problem_description,
         created_at,
         customers (
@@ -319,12 +321,13 @@ export default async function AdminPage() {
                         className="border-b last:border-0"
                       >
                         <td className="whitespace-nowrap px-3 py-4 font-semibold">
-                          <Link
-                            href={`/admin/service/${request.id}`}
-                            className="underline decoration-gray-300 underline-offset-4 hover:decoration-black"
-                          >
-                            {request.service_number}
-                          </Link>
+                          <ServiceNumberLink
+                            id={request.id}
+                            serviceNumber={request.service_number}
+                            selfRepairMarker={
+                              request.self_repair_marker
+                            }
+                          />
                         </td>
 
                         <td className="whitespace-nowrap px-3 py-4">

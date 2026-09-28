@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import ServiceNumberLink from '@/components/admin/service-number-link'
 import StatusBadge from '@/components/admin/status-badge'
 import { notFound, redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
@@ -73,6 +74,7 @@ export default async function SerialNumberPage({
         id,
         service_number,
         status,
+        self_repair_marker,
         problem_description,
         final_fault,
         created_at
@@ -407,12 +409,13 @@ export default async function SerialNumberPage({
                       className="border-b last:border-0 hover:bg-gray-50"
                     >
                       <td className="whitespace-nowrap px-3 py-4 font-semibold">
-                        <Link
-                          href={`/admin/service/${service.id}`}
-                          className="underline decoration-gray-300 underline-offset-4 hover:decoration-black"
-                        >
-                          {service.service_number}
-                        </Link>
+                        <ServiceNumberLink
+                          id={service.id}
+                          serviceNumber={service.service_number}
+                          selfRepairMarker={
+                            service.self_repair_marker
+                          }
+                        />
                       </td>
 
                       <td className="whitespace-nowrap px-3 py-4">
