@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import ServiceNumberLink from '@/components/admin/service-number-link'
+import HandlingStatusDot from '@/components/admin/handling-status-dot'
 import StatusBadge from '@/components/admin/status-badge'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
@@ -95,6 +96,7 @@ export default async function AdminPage() {
         service_number,
         status,
         self_repair_marker,
+        handling_status,
         problem_description,
         created_at,
         customers (
@@ -280,8 +282,8 @@ export default async function AdminPage() {
                     <th className="px-3 py-3">
                       Servicenummer
                     </th>
-                    <th className="px-3 py-3">
-                      Status
+                    <th className="w-20 px-3 py-3">
+                      Abwicklung
                     </th>
                     <th className="px-3 py-3">
                       Kunde
@@ -296,7 +298,10 @@ export default async function AdminPage() {
                       Problem
                     </th>
                     <th className="px-3 py-3">
-                      Datum
+                      Datum der Einmeldung
+                    </th>
+                    <th className="px-3 py-3">
+                      Status
                     </th>
                   </tr>
                 </thead>
@@ -330,8 +335,10 @@ export default async function AdminPage() {
                           />
                         </td>
 
-                        <td className="whitespace-nowrap px-3 py-4">
-                          <StatusBadge status={request.status} />
+                        <td className="px-3 py-4">
+                          <HandlingStatusDot
+                            status={request.handling_status}
+                          />
                         </td>
 
                         <td className="px-3 py-4">
@@ -376,6 +383,10 @@ export default async function AdminPage() {
                           }).format(
                             new Date(request.created_at)
                           )}
+                        </td>
+
+                        <td className="whitespace-nowrap px-3 py-4">
+                          <StatusBadge status={request.status} />
                         </td>
                       </tr>
                     )

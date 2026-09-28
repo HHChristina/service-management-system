@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import ServiceNumberLink from '@/components/admin/service-number-link'
+import HandlingStatusDot from '@/components/admin/handling-status-dot'
 import StatusBadge from '@/components/admin/status-badge'
 import { notFound, redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
@@ -75,6 +76,8 @@ export default async function SerialNumberPage({
         service_number,
         status,
         self_repair_marker,
+        handling_status,
+        handling_status,
         problem_description,
         final_fault,
         created_at
@@ -387,8 +390,8 @@ export default async function SerialNumberPage({
                     <th className="px-3 py-3">
                       Servicenummer
                     </th>
-                    <th className="px-3 py-3">
-                      Status
+                    <th className="w-20 px-3 py-3">
+                      Abwicklung
                     </th>
                     <th className="px-3 py-3">
                       Gemeldetes Problem
@@ -397,7 +400,10 @@ export default async function SerialNumberPage({
                       Festgestellter Fehler
                     </th>
                     <th className="px-3 py-3">
-                      Datum
+                      Datum der Einmeldung
+                    </th>
+                    <th className="px-3 py-3">
+                      Status
                     </th>
                   </tr>
                 </thead>
@@ -418,8 +424,10 @@ export default async function SerialNumberPage({
                         />
                       </td>
 
-                      <td className="whitespace-nowrap px-3 py-4">
-                        <StatusBadge status={service.status} />
+                      <td className="px-3 py-4">
+                        <HandlingStatusDot
+                          status={service.handling_status}
+                        />
                       </td>
 
                       <td className="max-w-lg px-3 py-4">
@@ -438,6 +446,10 @@ export default async function SerialNumberPage({
                         }).format(
                           new Date(service.created_at)
                         )}
+                      </td>
+
+                      <td className="whitespace-nowrap px-3 py-4">
+                        <StatusBadge status={service.status} />
                       </td>
                     </tr>
                   ))}

@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import ServiceNumberLink from '@/components/admin/service-number-link'
+import HandlingStatusDot from '@/components/admin/handling-status-dot'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import StatusBadge from '@/components/admin/status-badge'
@@ -92,6 +93,7 @@ export default async function ServiceListPage({
       service_number,
       status,
       self_repair_marker,
+      handling_status,
       problem_description,
       final_fault,
       contact_customer_name,
@@ -384,8 +386,8 @@ export default async function ServiceListPage({
                       Servicenummer
                     </th>
 
-                    <th className="px-5 py-4">
-                      Status
+                    <th className="w-24 px-5 py-4">
+                      Abwicklung
                     </th>
 
                     <th className="px-5 py-4">
@@ -405,7 +407,11 @@ export default async function ServiceListPage({
                     </th>
 
                     <th className="px-5 py-4">
-                      Eingang Servicemeldung
+                      Datum der Einmeldung
+                    </th>
+
+                    <th className="px-5 py-4">
+                      Status
                     </th>
 
                   </tr>
@@ -450,9 +456,9 @@ export default async function ServiceListPage({
 
                         </td>
 
-                        <td className="whitespace-nowrap px-5 py-4">
-                          <StatusBadge
-                            status={request.status}
+                        <td className="px-5 py-4">
+                          <HandlingStatusDot
+                            status={request.handling_status}
                           />
                         </td>
 
@@ -489,6 +495,10 @@ export default async function ServiceListPage({
                               request.created_at
                             )
                           )}
+                        </td>
+
+                        <td className="whitespace-nowrap px-5 py-4">
+                          <StatusBadge status={request.status} />
                         </td>
 
                       </tr>

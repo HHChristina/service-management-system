@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import ServiceNumberLink from '@/components/admin/service-number-link'
+import HandlingStatusDot from '@/components/admin/handling-status-dot'
 import { notFound, redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import StatusBadge from '@/components/admin/status-badge'
@@ -79,6 +80,8 @@ export default async function CustomerPage({
         service_number,
         status,
         self_repair_marker,
+        handling_status,
+        handling_status,
         problem_description,
         created_at,
         product_groups (
@@ -382,8 +385,8 @@ export default async function CustomerPage({
                     <th className="px-3 py-3">
                       Servicenummer
                     </th>
-                    <th className="px-3 py-3">
-                      Status
+                    <th className="w-20 px-3 py-3">
+                      Abwicklung
                     </th>
                     <th className="px-3 py-3">
                       Produktgruppe
@@ -395,7 +398,10 @@ export default async function CustomerPage({
                       Problem
                     </th>
                     <th className="px-3 py-3">
-                      Datum
+                      Datum der Einmeldung
+                    </th>
+                    <th className="px-3 py-3">
+                      Status
                     </th>
                   </tr>
                 </thead>
@@ -427,8 +433,10 @@ export default async function CustomerPage({
                           />
                         </td>
 
-                        <td className="whitespace-nowrap px-3 py-4">
-                          <StatusBadge status={request.status} />
+                        <td className="px-3 py-4">
+                          <HandlingStatusDot
+                            status={request.handling_status}
+                          />
                         </td>
 
                         <td className="px-3 py-4">
@@ -451,6 +459,10 @@ export default async function CustomerPage({
                           }).format(
                             new Date(request.created_at)
                           )}
+                        </td>
+
+                        <td className="whitespace-nowrap px-3 py-4">
+                          <StatusBadge status={request.status} />
                         </td>
                       </tr>
                     )
