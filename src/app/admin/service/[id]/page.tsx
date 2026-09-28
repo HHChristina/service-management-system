@@ -53,6 +53,8 @@ export default async function ServiceRequestPage({
     .select(`
       id,
       customer_id,
+      customer_location_id,
+      customer_assignment_status,
       product_group_id,
       serial_number_id,
       service_number,
@@ -76,7 +78,8 @@ export default async function ServiceRequestPage({
       contact_country,
       customers (
         id,
-        name
+        name,
+        is_provisional
       ),
       product_groups (
         id,
@@ -200,6 +203,56 @@ export default async function ServiceRequestPage({
     : serialNumber.warranty_until >= todayVienna
       ? `Garantie gültig bis ${serialNumber.warranty_until}`
       : `Garantie abgelaufen am ${serialNumber.warranty_until}`
+
+  let assignmentCustomers: {
+    id: string
+    name: string
+    city: string | null
+  }[] = []
+
+  let assignmentLocations: {
+    id: string
+    label: string | null
+    street_address: string
+    postal_code: string
+    city: string
+    country: string
+  }[] = []
+
+  if (
+    serviceRequest.customer_assignment_status ===
+    'needs_review'
+  ) {
+    if (customer?.is_provisional) {
+      const { data } = await supabase
+        .from('customers')
+        .select('id, name, city')
+        .eq('is_active', true)
+        .eq('is_provisional', false)
+        .order('name')
+
+      assignmentCustomers = data ?? []
+    } else {
+      const { data } = await supabase
+        .from('customer_locations')
+        .select(`
+          id,
+          label,
+          street_address,
+          postal_code,
+          city,
+          country
+        `)
+        .eq(
+          'customer_id',
+          serviceRequest.customer_id
+        )
+        .eq('is_active', true)
+        .order('label')
+
+      assignmentLocations = data ?? []
+    }
+  }
 
   return (
     <main className="min-h-screen bg-gray-100 p-6 md:p-8">
@@ -390,6 +443,229 @@ export default async function ServiceRequestPage({
           </section>
 
         </div>
+
+        {serviceRequest.customer_assignment_status ===
+          'needs_review' && (
+          <section className="mt-6 rounded-2xl border-2 border-amber-300 bg-amber-50 p-6 shadow-sm">
+
+            <div>
+              <p className="text-sm font-semibold uppercase tracking-wide text-amber-800">
+                Kundenzuordnung prüfen
+              </p>
+
+              <h2 className="mt-1 text-xl font-bold text-amber-950">
+                Diese Adresse konnte nicht eindeutig zugeordnet werden
+              </h2>
+
+              <p className="mt-2 text-sm text-amber-900">
+                Bitte prüfen, zu welchem Klinikum bzw. Standort
+                diese Servicemeldung gehört.
+              </p>
+            </div>
+
+            <div className="mt-5 rounded-xl bg-white p-4">
+              <p className="text-sm text-gray-500">
+                Vom Kunden gemeldet
+              </p>
+
+              <p className="mt-1 font-semibold">
+                {serviceRequest.contact_customer_name}
+              </p>
+
+              <p className="mt-1">
+                {serviceRequest.contact_street_address}
+                <br />
+                {serviceRequest.contact_postal_code}{' '}
+                {serviceRequest.contact_city}
+                <br />
+                {serviceRequest.contact_country}
+              </p>
+            </div>
+
+            {customer?.is_provisional ? (
+              <div className="mt-6 grid gap-6 lg:grid-cols-2">
+
+                <div className="rounded-xl bg-white p-5">
+                  <h3 className="font-bold">
+                    Zu bestehendem Kunden zuordnen
+                  </h3>
+
+                  <p className="mt-1 text-sm text-gray-500">
+                    Die gemeldete Adresse wird als Standort
+                    dieses Kunden übernommen.
+                  </p>
+
+                  <form
+                    action={`/api/admin/service/${serviceRequest.id}/customer-assignment`}
+                    method="post"
+                    className="mt-4"
+                  >
+                    <input
+                      type="hidden"
+                      name="action"
+                      value="assign_existing_customer"
+                    />
+
+                    <select
+                      name="target_customer_id"
+                      required
+                      defaultValue=""
+                      className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3"
+                    >
+                      <option value="" disabled>
+                        Kunden auswählen...
+                      </option>
+
+                      {assignmentCustomers.map(
+                        (item) => (
+                          <option
+                            key={item.id}
+                            value={item.id}
+                          >
+                            {item.name}
+                            {item.city
+                              ? ` – ${item.city}`
+                              : ''}
+                          </option>
+                        )
+                      )}
+                    </select>
+
+                    <button
+                      type="submit"
+                      className="mt-4 rounded-lg bg-black px-5 py-3 font-medium text-white hover:bg-gray-800"
+                    >
+                      Bestehendem Kunden zuordnen
+                    </button>
+                  </form>
+                </div>
+
+                <div className="rounded-xl bg-white p-5">
+                  <h3 className="font-bold">
+                    Tatsächlich neuer Kunde
+                  </h3>
+
+                  <p className="mt-1 text-sm text-gray-500">
+                    Verwenden, wenn dieses Klinikum wirklich
+                    noch nicht im System vorhanden ist.
+                  </p>
+
+                  <form
+                    action={`/api/admin/service/${serviceRequest.id}/customer-assignment`}
+                    method="post"
+                    className="mt-4"
+                  >
+                    <input
+                      type="hidden"
+                      name="action"
+                      value="confirm_new_customer"
+                    />
+
+                    <button
+                      type="submit"
+                      className="rounded-lg border border-gray-400 bg-white px-5 py-3 font-medium hover:bg-gray-50"
+                    >
+                      Als neuen Kunden bestätigen
+                    </button>
+                  </form>
+                </div>
+
+              </div>
+            ) : (
+              <div className="mt-6 grid gap-6 lg:grid-cols-2">
+
+                <div className="rounded-xl bg-white p-5">
+                  <h3 className="font-bold">
+                    Vorhandenen Standort verwenden
+                  </h3>
+
+                  <p className="mt-1 text-sm text-gray-500">
+                    Kunde: {customer?.name}
+                  </p>
+
+                  <form
+                    action={`/api/admin/service/${serviceRequest.id}/customer-assignment`}
+                    method="post"
+                    className="mt-4"
+                  >
+                    <input
+                      type="hidden"
+                      name="action"
+                      value="use_existing_location"
+                    />
+
+                    <select
+                      name="target_location_id"
+                      required
+                      defaultValue=""
+                      className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3"
+                    >
+                      <option value="" disabled>
+                        Standort auswählen...
+                      </option>
+
+                      {assignmentLocations.map(
+                        (location) => (
+                          <option
+                            key={location.id}
+                            value={location.id}
+                          >
+                            {location.label
+                              ? `${location.label}: `
+                              : ''}
+                            {location.street_address},{' '}
+                            {location.postal_code}{' '}
+                            {location.city}
+                          </option>
+                        )
+                      )}
+                    </select>
+
+                    <button
+                      type="submit"
+                      className="mt-4 rounded-lg bg-black px-5 py-3 font-medium text-white hover:bg-gray-800"
+                    >
+                      Standort zuordnen
+                    </button>
+                  </form>
+                </div>
+
+                <div className="rounded-xl bg-white p-5">
+                  <h3 className="font-bold">
+                    Neuer Standort dieses Kunden
+                  </h3>
+
+                  <p className="mt-1 text-sm text-gray-500">
+                    Die gemeldete Adresse wird dauerhaft als
+                    zusätzlicher Standort von {customer?.name}
+                    gespeichert.
+                  </p>
+
+                  <form
+                    action={`/api/admin/service/${serviceRequest.id}/customer-assignment`}
+                    method="post"
+                    className="mt-4"
+                  >
+                    <input
+                      type="hidden"
+                      name="action"
+                      value="create_location"
+                    />
+
+                    <button
+                      type="submit"
+                      className="rounded-lg border border-gray-400 bg-white px-5 py-3 font-medium hover:bg-gray-50"
+                    >
+                      Adresse als neuen Standort hinzufügen
+                    </button>
+                  </form>
+                </div>
+
+              </div>
+            )}
+
+          </section>
+        )}
 
         <section className="mt-6 rounded-2xl bg-white p-6 shadow-sm">
           <h2 className="text-xl font-bold">
