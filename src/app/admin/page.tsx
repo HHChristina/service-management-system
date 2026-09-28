@@ -40,6 +40,8 @@ export default async function AdminPage() {
     productGroupsResult,
     newResult,
     inProgressResult,
+    repairScheduledResult,
+    customerSelfRepairResult,
     completedResult,
     recentRequestsResult,
   ] = await Promise.all([
@@ -69,6 +71,16 @@ export default async function AdminPage() {
       .from('service_requests')
       .select('*', { count: 'exact', head: true })
       .eq('status', 'in_progress'),
+
+    supabase
+      .from('service_requests')
+      .select('*', { count: 'exact', head: true })
+      .eq('status', 'repair_scheduled'),
+
+    supabase
+      .from('service_requests')
+      .select('*', { count: 'exact', head: true })
+      .eq('status', 'customer_self_repair'),
 
     supabase
       .from('service_requests')
@@ -180,7 +192,7 @@ export default async function AdminPage() {
 
         </div>
 
-        <div className="mt-8 grid gap-6 md:grid-cols-3">
+        <div className="mt-8 grid gap-6 sm:grid-cols-2 xl:grid-cols-5">
 
           <Link
             href="/admin/service?status=new"
@@ -199,6 +211,26 @@ export default async function AdminPage() {
             <StatusBadge status="in_progress" />
             <p className="mt-3 text-4xl font-bold">
               {inProgressResult.count ?? 0}
+            </p>
+          </Link>
+
+          <Link
+            href="/admin/service?status=repair_scheduled"
+            className="rounded-2xl border border-purple-200 bg-white p-6 shadow-sm transition hover:shadow-md"
+          >
+            <StatusBadge status="repair_scheduled" />
+            <p className="mt-3 text-4xl font-bold">
+              {repairScheduledResult.count ?? 0}
+            </p>
+          </Link>
+
+          <Link
+            href="/admin/service?status=customer_self_repair"
+            className="rounded-2xl border border-orange-200 bg-white p-6 shadow-sm transition hover:shadow-md"
+          >
+            <StatusBadge status="customer_self_repair" />
+            <p className="mt-3 text-4xl font-bold">
+              {customerSelfRepairResult.count ?? 0}
             </p>
           </Link>
 

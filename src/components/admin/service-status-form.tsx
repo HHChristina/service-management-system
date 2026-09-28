@@ -11,8 +11,7 @@ export default function ServiceStatusForm({
   currentStatus: string
   hasFinalFault: boolean
 }) {
-  const [status, setStatus] =
-    useState(currentStatus)
+  const [status, setStatus] = useState(currentStatus)
 
   function handleSubmit(
     event: FormEvent<HTMLFormElement>
@@ -61,6 +60,14 @@ export default function ServiceStatusForm({
 
         <option value="in_progress">
           In Bearbeitung
+        </option>
+
+        <option value="repair_scheduled">
+          Reparaturtermin ist vereinbart
+        </option>
+
+        <option value="customer_self_repair">
+          Selbstreparatur durch Kunde
         </option>
 
         <option value="completed">

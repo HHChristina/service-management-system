@@ -1,7 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 
-const allowedStatuses = ['new', 'in_progress', 'completed']
+const allowedStatuses = [
+  'new',
+  'in_progress',
+  'repair_scheduled',
+  'customer_self_repair',
+  'completed',
+]
 
 export async function POST(
   request: NextRequest,

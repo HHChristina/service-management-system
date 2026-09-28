@@ -9,6 +9,8 @@ export const dynamic = 'force-dynamic'
 function statusLabel(status: string) {
   if (status === 'new') return 'Neu'
   if (status === 'in_progress') return 'In Bearbeitung'
+  if (status === 'repair_scheduled') return 'Reparaturtermin ist vereinbart'
+  if (status === 'customer_self_repair') return 'Selbstreparatur durch Kunde'
   if (status === 'completed') return 'Abgeschlossen'
   return status
 }

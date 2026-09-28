@@ -257,6 +257,38 @@ export default async function ServiceListPage({
                   <input
                     type="checkbox"
                     name="status"
+                    value="repair_scheduled"
+                    defaultChecked={
+                      selectedStatuses.includes(
+                        'repair_scheduled'
+                      )
+                    }
+                    className="h-4 w-4"
+                  />
+
+                  <span>Reparaturtermin ist vereinbart</span>
+                </label>
+
+                <label className="flex cursor-pointer items-center gap-2">
+                  <input
+                    type="checkbox"
+                    name="status"
+                    value="customer_self_repair"
+                    defaultChecked={
+                      selectedStatuses.includes(
+                        'customer_self_repair'
+                      )
+                    }
+                    className="h-4 w-4"
+                  />
+
+                  <span>Selbstreparatur durch Kunde</span>
+                </label>
+
+                <label className="flex cursor-pointer items-center gap-2">
+                  <input
+                    type="checkbox"
+                    name="status"
                     value="completed"
                     defaultChecked={
                       selectedStatuses.includes(
