@@ -356,8 +356,8 @@ export default function ServiceForm({
         <input
           name="street_address"
           className="w-full rounded-lg border border-gray-300 px-4 py-3"
-        /
-                required>
+        required
+        />
       </div>
 
       <div className="grid gap-6 md:grid-cols-2">
@@ -369,8 +369,8 @@ export default function ServiceForm({
           <input
             name="postal_code"
             className="w-full rounded-lg border border-gray-300 px-4 py-3"
-          /
-                required>
+          required
+          />
         </div>
 
         <div>
@@ -381,8 +381,8 @@ export default function ServiceForm({
           <input
             name="city"
             className="w-full rounded-lg border border-gray-300 px-4 py-3"
-          /
-                required>
+          required
+          />
         </div>
       </div>
 
