@@ -84,12 +84,14 @@ export default async function AdminPage() {
         problem_description,
         created_at,
         customers (
+          id,
           name
         ),
         product_groups (
           name
         ),
         serial_numbers (
+          id,
           serial_number
         )
       `)
@@ -298,7 +300,16 @@ export default async function AdminPage() {
                         </td>
 
                         <td className="px-3 py-4">
-                          {customer?.name ?? '–'}
+                          {customer?.id ? (
+                            <Link
+                              href={`/admin/customers/${customer.id}`}
+                              className="font-medium underline decoration-gray-300 underline-offset-4 hover:decoration-black"
+                            >
+                              {customer.name}
+                            </Link>
+                          ) : (
+                            customer?.name ?? '–'
+                          )}
                         </td>
 
                         <td className="px-3 py-4">
@@ -306,7 +317,16 @@ export default async function AdminPage() {
                         </td>
 
                         <td className="whitespace-nowrap px-3 py-4">
-                          {serialNumber?.serial_number ?? '–'}
+                          {serialNumber?.id ? (
+                            <Link
+                              href={`/admin/serial/${serialNumber.id}`}
+                              className="font-medium underline decoration-gray-300 underline-offset-4 hover:decoration-black"
+                            >
+                              {serialNumber.serial_number}
+                            </Link>
+                          ) : (
+                            serialNumber?.serial_number ?? '–'
+                          )}
                         </td>
 
                         <td className="max-w-xs truncate px-3 py-4">

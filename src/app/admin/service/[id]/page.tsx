@@ -220,7 +220,16 @@ export default async function ServiceRequestPage({
                   Seriennummer
                 </dt>
                 <dd className="font-medium">
-                  {serialNumber?.serial_number ?? '–'}
+                  {serialNumber?.id ? (
+                    <Link
+                      href={`/admin/serial/${serialNumber.id}`}
+                      className="underline decoration-gray-300 underline-offset-4 hover:decoration-black"
+                    >
+                      {serialNumber.serial_number}
+                    </Link>
+                  ) : (
+                    '–'
+                  )}
                 </dd>
               </div>
             </dl>
