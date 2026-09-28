@@ -54,6 +54,8 @@ export default async function ServiceRequestPage({
       serial_number_id,
       service_number,
       status,
+      handling_status,
+      handling_status_manual,
       problem_description,
       final_fault,
       created_at,
@@ -185,9 +187,31 @@ export default async function ServiceRequestPage({
                 Servicefall
               </p>
 
-              <h1 className="mt-1 text-3xl font-bold">
-                {serviceRequest.service_number}
-              </h1>
+              <div className="mt-1 flex items-center gap-4">
+                <h1 className="text-3xl font-bold">
+                  {serviceRequest.service_number}
+                </h1>
+
+                <span
+                  title={
+                    serviceRequest.handling_status === 'warranty'
+                      ? 'Garantie'
+                      : serviceRequest.handling_status === 'customer_fault'
+                        ? 'Verschleißteil / Kunde ist schuld'
+                        : serviceRequest.handling_status === 'out_of_warranty'
+                          ? 'Gerät nicht mehr in Garantie'
+                          : 'Abwicklungsstatus noch nicht festgelegt'
+                  }
+                  className={`h-7 w-7 rounded-full border-2 ${
+                    serviceRequest.handling_status === 'warranty'
+                      ? 'border-green-600 bg-green-500'
+                      : serviceRequest.handling_status === 'customer_fault' ||
+                          serviceRequest.handling_status === 'out_of_warranty'
+                        ? 'border-red-600 bg-red-500'
+                        : 'border-black bg-transparent'
+                  }`}
+                />
+              </div>
 
               <p className="mt-2 text-gray-600">
                 Erstellt am{' '}
@@ -377,6 +401,90 @@ export default async function ServiceRequestPage({
           <p className="mt-4 whitespace-pre-wrap text-gray-700">
             {serviceRequest.problem_description}
           </p>
+        </section>
+
+        <section className="mt-6 rounded-2xl bg-white p-6 shadow-sm">
+          <h2 className="text-xl font-bold">
+            Abwicklung des Servicefalls
+          </h2>
+
+          <p className="mt-2 text-sm text-gray-500">
+            Der Status wird zunächst automatisch aus der Gerätegarantie übernommen
+            und kann anschließend durch einen Mitarbeiter angepasst werden.
+          </p>
+
+          <form
+            action={`/api/admin/service/${serviceRequest.id}/handling-status`}
+            method="post"
+            className="mt-5 flex flex-col gap-3 sm:flex-row sm:items-end"
+          >
+            <div className="w-full max-w-xl">
+              <label
+                htmlFor="handling_status"
+                className="mb-2 block text-sm font-medium"
+              >
+                Der Fall wird abgewickelt als
+              </label>
+
+              <select
+                id="handling_status"
+                name="handling_status"
+                defaultValue={
+                  serviceRequest.handling_status ?? ''
+                }
+                className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3"
+              >
+                <option value="">
+                  Noch nicht festgelegt
+                </option>
+
+                <option value="warranty">
+                  Garantie
+                </option>
+
+                <option value="customer_fault">
+                  Verschleißteil / Kunde ist schuld (Kunde muss zahlen)
+                </option>
+
+                <option value="out_of_warranty">
+                  Gerät nicht mehr in Garantie (Kunde muss zahlen)
+                </option>
+              </select>
+            </div>
+
+            <button
+              type="submit"
+              className="rounded-lg bg-black px-5 py-3 font-medium text-white hover:bg-gray-800"
+            >
+              Abwicklung speichern
+            </button>
+          </form>
+
+          <div className="mt-4">
+            {serviceRequest.handling_status === 'warranty' && (
+              <span className="inline-flex rounded-full bg-green-100 px-3 py-1 text-sm font-semibold text-green-800">
+                Garantie
+              </span>
+            )}
+
+            {serviceRequest.handling_status === 'customer_fault' && (
+              <span className="inline-flex rounded-full bg-red-100 px-3 py-1 text-sm font-semibold text-red-800">
+                Verschleißteil / Kunde ist schuld
+              </span>
+            )}
+
+            {serviceRequest.handling_status === 'out_of_warranty' && (
+              <span className="inline-flex rounded-full bg-red-100 px-3 py-1 text-sm font-semibold text-red-800">
+                Gerät nicht mehr in Garantie
+              </span>
+            )}
+
+            {!serviceRequest.handling_status && (
+              <span className="inline-flex rounded-full border border-gray-400 px-3 py-1 text-sm font-semibold text-gray-700">
+                Noch nicht festgelegt
+              </span>
+            )}
+          </div>
         </section>
 
         <section className="mt-6 rounded-2xl bg-white p-6 shadow-sm">
