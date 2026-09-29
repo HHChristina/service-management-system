@@ -88,6 +88,26 @@ export async function POST(
 
   const admin = createAdminClient()
 
+  // Bereits erfolgreich bestätigte Zuordnung:
+  // Bei erneutem Klick einfach zurück zum Servicefall.
+  if (action === 'confirm_new_customer') {
+    const { data: currentRequest } = await admin
+      .from('service_requests')
+      .select('customer_assignment_status')
+      .eq('id', id)
+      .single()
+
+    if (
+      currentRequest?.customer_assignment_status ===
+      'confirmed'
+    ) {
+      return NextResponse.redirect(
+        new URL(`/admin/service/${id}`, request.url),
+        303
+      )
+    }
+  }
+
   const { error } = await admin.rpc(
     'resolve_service_customer_assignment',
     {
